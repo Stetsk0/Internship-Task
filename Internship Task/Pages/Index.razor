@@ -1,0 +1,89 @@
+﻿@page "/"
+@using Azure.Storage.Blobs;
+@using Microsoft.AspNetCore.Mvc;
+
+<PageTitle>File upload</PageTitle>
+
+<h1>File upload</h1>
+
+<InputFile OnChange="@HandleSelection" class="form-control" accept=".docx" />
+
+<div style="margin: 10px">
+    <label for="email">Email:</label>
+    <input type="text" id="email" @bind-value="email" />
+</div>
+
+
+@if (!string.IsNullOrEmpty(email) && !IsValidEmail(email))
+{
+    <p style="margin: 10px" class="text-danger">Please enter a valid email address.</p>
+}
+
+@if (isFileExists)
+{
+    <p style="margin: 10px" class="text-danger">The file already exists. Rename or select a different file.</p>
+    isFileExists = false;
+}
+
+@if (IsValidEmail(email) && isFileSelected)
+{
+    <button type="submit" class="btn btn-primary" @onclick="@UploadFile">Upload</button>
+}
+
+@if (isFileUploaded)
+{
+    <p style="margin: 10px">File uploaded succesfully!</p>
+    isFileUploaded = false;
+}
+
+
+
+@code {
+    private string? email;
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private bool isFileSelected = false;
+    private IBrowserFile? file;
+    private void HandleSelection(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        isFileSelected = true;
+    }
+
+    private bool isFileUploaded = false;
+    private bool isFileExists = false;
+    private async Task UploadFile()
+    {
+        if (file != null)
+        {
+            var blobStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=trainingblobstorage01;AccountKey=eCzeOWtteGKPpqtElNDkQ2O70nLHCd1wIQqruga1RmYjn9Ss0f0+XA0zZag4FecBLfwHDzffhw4o+AStNApU2w==;EndpointSuffix=core.windows.net";
+            var blobStorageContainerName = "files";
+            var container = new BlobContainerClient(blobStorageConnectionString, blobStorageContainerName);
+            string fileName = file.Name;    
+            BlobClient blobClient = container.GetBlobClient(fileName);
+            if (!blobClient.Exists())
+            {
+                using (Stream stream = file.OpenReadStream())
+                {
+                    await blobClient.UploadAsync(stream);
+                }
+                isFileUploaded = true;
+            }
+            else
+            {
+                isFileExists = true;
+            }
+        }
+    }
+}
