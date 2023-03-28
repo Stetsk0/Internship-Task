@@ -6,7 +6,7 @@
 <PageTitle>File upload</PageTitle>
 
 <h1>File upload</h1>
-
+<h3> Maximum allowed file size : 1MB</h3>
 <InputFile OnChange="@HandleSelection" class="form-control" accept=".docx" />
 
 <div style="margin: 10px">
@@ -14,10 +14,20 @@
     <input type="text" id="email" @bind-value="email" />
 </div>
 
-
 @if (!string.IsNullOrEmpty(email) && !IsValidEmail(email))
 {
     <p style="margin: 10px" class="text-danger">Please enter a valid email address.</p>
+}
+
+@if (IsValidEmail(email) && isFileSelected)
+{
+    <button type="submit" class="btn btn-primary" @onclick="@UploadFile">Upload</button>
+}
+
+@if (isTheFileLimitExceeded)
+{
+    <p style="margin: 10px" class="text-danger">You have exceeded the file size limit. Choose another one.</p>
+    isTheFileLimitExceeded = false;
 }
 
 @if (isFileExists)
@@ -26,18 +36,11 @@
     isFileExists = false;
 }
 
-@if (IsValidEmail(email) && isFileSelected)
-{
-    <button type="submit" class="btn btn-primary" @onclick="@UploadFile">Upload</button>
-}
-
 @if (isFileUploaded)
 {
-    <p style="margin: 10px">File uploaded succesfully!</p>
+    <p style="margin: 10px; color:chartreuse">File uploaded succesfully!</p>
     isFileUploaded = false;
 }
-
-
 
 @code {
     private string? email;
@@ -54,7 +57,7 @@
         }
     }
 
-    private bool isFileSelected = false;
+    private bool isFileSelected;
     private IBrowserFile? file;
     private void HandleSelection(InputFileChangeEventArgs e)
     {
@@ -62,8 +65,10 @@
         isFileSelected = true;
     }
 
-    private bool isFileUploaded = false;
-    private bool isFileExists = false;
+    private bool isFileUploaded;
+    private bool isFileExists;
+    private bool isTheFileLimitExceeded;
+    private long maxFileSize = 1024 * 1000;
     private async Task UploadFile()
     {
         if (file != null)
@@ -80,14 +85,22 @@
             BlobClient blobClient = container.GetBlobClient(fileName);
             if (!blobClient.Exists())
             {
-                using (Stream stream = file.OpenReadStream())
+                if (!(file.Size >= maxFileSize))
                 {
-                    await blobClient.UploadAsync(stream, new BlobUploadOptions { Metadata = metadata });
+                    using (Stream stream = file.OpenReadStream(maxFileSize))
+                    {
+                        await blobClient.UploadAsync(stream, new BlobUploadOptions { Metadata = metadata });
+                    }
+                    isFileUploaded = true;
+                }  
+                else
+                {
+                    isTheFileLimitExceeded = true;
                 }
-                isFileUploaded = true;
             }
             else
             {
+                
                 isFileExists = true;
             }
         }
