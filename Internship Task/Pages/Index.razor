@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Azure.Storage.Blobs;
+@using Azure.Storage.Blobs.Models;
 @using Microsoft.AspNetCore.Mvc;
 
 <PageTitle>File upload</PageTitle>
@@ -67,16 +68,21 @@
     {
         if (file != null)
         {
+            var metadata = new Dictionary<string, string>
+            {
+                { "Email", email }
+            };
+
             var blobStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=trainingblobstorage01;AccountKey=eCzeOWtteGKPpqtElNDkQ2O70nLHCd1wIQqruga1RmYjn9Ss0f0+XA0zZag4FecBLfwHDzffhw4o+AStNApU2w==;EndpointSuffix=core.windows.net";
             var blobStorageContainerName = "files";
             var container = new BlobContainerClient(blobStorageConnectionString, blobStorageContainerName);
-            string fileName = file.Name;    
+            string fileName = file.Name;
             BlobClient blobClient = container.GetBlobClient(fileName);
             if (!blobClient.Exists())
             {
                 using (Stream stream = file.OpenReadStream())
                 {
-                    await blobClient.UploadAsync(stream);
+                    await blobClient.UploadAsync(stream, new BlobUploadOptions { Metadata = metadata });
                 }
                 isFileUploaded = true;
             }
