@@ -1,44 +1,40 @@
 ﻿@page "/"
-@using Azure.Storage.Blobs;
-@using Azure.Storage.Blobs.Models;
-@using Microsoft.AspNetCore.Mvc;
-
 <PageTitle>File upload</PageTitle>
 
-<h1>File upload</h1>
-<h3> Maximum allowed file size : 1MB</h3>
-<InputFile OnChange="@HandleSelection" class="form-control" accept=".docx" />
+<h2>Upload the file to the Azure blob storage</h2>
+<h5>Maximum allowed file size : 1MB</h5>
+<InputFile OnChange="@HandleSelection" style="margin-top: 10px; width: 300px; padding: 0.5rem; background-color: transparent" class="form-control" accept=".docx" />
 
-<div style="margin: 10px">
+<div style="margin-top: 10px">
     <label for="email">Email:</label>
-    <input type="text" id="email" @bind-value="email" />
+    <input style="width: 250px" type="text" id="email" @bind-value="email" />
 </div>
 
 @if (!string.IsNullOrEmpty(email) && !IsValidEmail(email))
 {
-    <p style="margin: 10px" class="text-danger">Please enter a valid email address.</p>
+    <p style="margin-top: 10px" class="text-danger">Please enter a valid email address.</p>
 }
 
 @if (IsValidEmail(email) && isFileSelected)
 {
-    <button type="submit" class="btn btn-primary" @onclick="@UploadFile">Upload</button>
+    <button style="margin-top: 10px" type="submit" class="css-button-gradient" @onclick="@UploadFile">Upload</button>
 }
 
 @if (isTheFileLimitExceeded)
 {
-    <p style="margin: 10px" class="text-danger">You have exceeded the file size limit. Choose another one.</p>
+    <p style="margin-top: 10px" class="text-danger">You have exceeded the file size limit. Choose another one.</p>
     isTheFileLimitExceeded = false;
 }
 
 @if (isFileExists)
 {
-    <p style="margin: 10px" class="text-danger">The file already exists. Rename or select a different file.</p>
+    <p style="margin-top: 10px" class="text-danger">The file already exists. Rename or select a different file.</p>
     isFileExists = false;
 }
 
 @if (isFileUploaded)
 {
-    <p style="margin: 10px; color:chartreuse">File uploaded succesfully!</p>
+    <p style=" color:indigo">File uploaded succesfully! You will receive an email about the upload</p>
     isFileUploaded = false;
 }
 
@@ -100,7 +96,6 @@
             }
             else
             {
-                
                 isFileExists = true;
             }
         }
