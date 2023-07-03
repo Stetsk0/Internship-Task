@@ -74,7 +74,7 @@
                 { "Email", email }
             };
 
-            var blobStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=trainingblobstorage01;AccountKey=eCzeOWtteGKPpqtElNDkQ2O70nLHCd1wIQqruga1RmYjn9Ss0f0+XA0zZag4FecBLfwHDzffhw4o+AStNApU2w==;EndpointSuffix=core.windows.net";
+            var blobStorageConnectionString = Environment.GetEnvironmentVariable("BlobStorageConnectionString");
             var blobStorageContainerName = "files";
             var container = new BlobContainerClient(blobStorageConnectionString, blobStorageContainerName);
             string fileName = file.Name;
