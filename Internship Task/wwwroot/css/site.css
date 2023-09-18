@@ -2,6 +2,7 @@
 
 html, body {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    background-color: aliceblue;
 }
 
 h1:focus {
@@ -27,6 +28,7 @@ a {
 .validation-message {
     color: red;
 }
+
 
 #blazor-error-ui {
     background: lightyellow;

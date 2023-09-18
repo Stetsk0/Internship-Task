@@ -1,3 +1,4 @@
+using Internship_Task.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -12,6 +13,9 @@ namespace Internship_Task
 
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+
+            builder.Services.AddSingleton<EmailValidator>();
+            builder.Services.AddSingleton<User>();
 
             var app = builder.Build();
 

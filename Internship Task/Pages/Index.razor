@@ -1,103 +1,60 @@
 ﻿@page "/"
+
+@inject User user
+@inject EmailValidator emailValidator
+
 <PageTitle>File upload</PageTitle>
 
-<h2>Upload the file to the Azure blob storage</h2>
+<h2>Upload the file to Azure blob storage</h2>
 <h5>Maximum allowed file size : 1MB</h5>
-<InputFile OnChange="@HandleSelection" style="margin-top: 10px; width: 300px; padding: 0.5rem; background-color: transparent" class="form-control" accept=".docx" />
+
+<InputFile OnChange="@user.HandleSelection" style="margin-top: 10px; width: 300px; padding: 0.5rem; background-color: transparent" class="form-control" accept=".docx" />
 
 <div style="margin-top: 10px">
     <label for="email">Email:</label>
-    <input style="width: 250px" type="text" id="email" @bind-value="email" />
+    <input style="width: 250px; background-color:aliceblue; color:indigo" type="text" id="email" @bind-value="user.Email" />
 </div>
 
-@if (!string.IsNullOrEmpty(email) && !IsValidEmail(email))
+@if (!string.IsNullOrEmpty(user.Email) && emailValidator.IsValidEmail(user.Email) && FileStatus.Selected)
+{
+    <button style="margin-top: 10px" type="submit" class="css-button-gradient" @onclick="@user.UploadFile">Upload</button>
+}
+else
+{
+    <button style="margin-top: 10px" type="submit" class="css-button-gradient" @onclick="@user.UploadFile" disabled>Upload</button>
+}
+
+@if (!string.IsNullOrEmpty(user.Email) && !emailValidator.IsValidEmail(user.Email))
 {
     <p style="margin-top: 10px" class="text-danger">Please enter a valid email address.</p>
 }
 
-@if (IsValidEmail(email) && isFileSelected)
+@if (string.IsNullOrEmpty(user.Email))
 {
-    <button style="margin-top: 10px" type="submit" class="css-button-gradient" @onclick="@UploadFile">Upload</button>
+    <p style="margin-top: 10px; color:indigo">Please enter your email.</p>
 }
 
-@if (isTheFileLimitExceeded)
+@if (FileStatus.LimitExceeded)
 {
     <p style="margin-top: 10px" class="text-danger">You have exceeded the file size limit. Choose another one.</p>
-    isTheFileLimitExceeded = false;
+    FileStatus.LimitExceeded = false;
 }
 
-@if (isFileExists)
+@if (FileStatus.Exists)
 {
     <p style="margin-top: 10px" class="text-danger">The file already exists. Rename or select a different file.</p>
-    isFileExists = false;
+    FileStatus.Exists = false;
 }
 
-@if (isFileUploaded)
+@if (FileStatus.Uploaded)
 {
-    <p style=" color:indigo">File uploaded succesfully! You will receive an email about the upload</p>
-    isFileUploaded = false;
+    <p style="margin-top: 10px; color:indigo">File uploaded succesfully! You will receive an email about the upload</p>
+    FileStatus.Uploaded = false;
 }
 
-@code {
-    private string? email;
-    private bool IsValidEmail(string email)
-    {
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private bool isFileSelected;
-    private IBrowserFile? file;
-    private void HandleSelection(InputFileChangeEventArgs e)
-    {
-        file = e.File;
-        isFileSelected = true;
-    }
-
-    private bool isFileUploaded;
-    private bool isFileExists;
-    private bool isTheFileLimitExceeded;
-    private long maxFileSize = 1024 * 1000;
-    private async Task UploadFile()
-    {
-        if (file != null)
-        {
-            var metadata = new Dictionary<string, string>
-            {
-                { "Email", email }
-            };
-
-            var blobStorageConnectionString = Environment.GetEnvironmentVariable("BlobStorageConnectionString");
-            var blobStorageContainerName = "files";
-            var container = new BlobContainerClient(blobStorageConnectionString, blobStorageContainerName);
-            string fileName = file.Name;
-            BlobClient blobClient = container.GetBlobClient(fileName);
-            if (!blobClient.Exists())
-            {
-                if (!(file.Size >= maxFileSize))
-                {
-                    using (Stream stream = file.OpenReadStream(maxFileSize))
-                    {
-                        await blobClient.UploadAsync(stream, new BlobUploadOptions { Metadata = metadata });
-                    }
-                    isFileUploaded = true;
-                }  
-                else
-                {
-                    isTheFileLimitExceeded = true;
-                }
-            }
-            else
-            {
-                isFileExists = true;
-            }
-        }
-    }
+@if (!FileStatus.Selected)
+{
+    <p style="margin-top: 10px; color:indigo">Please select a file.</p>
 }
+
+@code { }
