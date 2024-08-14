@@ -1,0 +1,60 @@
+﻿@page "/"
+
+@inject User user
+@inject EmailValidator emailValidator
+
+<PageTitle>File upload</PageTitle>
+
+<h2>Upload the file to Azure blob storage</h2>
+<h5>Maximum allowed file size : 1MB</h5>
+
+<InputFile OnChange="@user.HandleSelection" style="margin-top: 10px; width: 300px; padding: 0.5rem; background-color: transparent" class="form-control" accept=".docx" />
+
+<div style="margin-top: 10px">
+    <label for="email">Email:</label>
+    <input style="width: 250px; background-color:aliceblue; color:indigo" type="text" id="email" @bind-value="user.Email" />
+</div>
+
+@if (!string.IsNullOrEmpty(user.Email) && emailValidator.IsValidEmail(user.Email) && FileStatus.Selected)
+{
+    <button style="margin-top: 10px" type="submit" class="css-button-gradient" @onclick="@user.UploadFile">Upload</button>
+}
+else
+{
+    <button style="margin-top: 10px" type="submit" class="css-button-gradient" @onclick="@user.UploadFile" disabled>Upload</button>
+}
+
+@if (!string.IsNullOrEmpty(user.Email) && !emailValidator.IsValidEmail(user.Email))
+{
+    <p style="margin-top: 10px" class="text-danger">Please enter a valid email address.</p>
+}
+
+@if (string.IsNullOrEmpty(user.Email))
+{
+    <p style="margin-top: 10px; color:indigo">Please enter your email.</p>
+}
+
+@if (FileStatus.LimitExceeded)
+{
+    <p style="margin-top: 10px" class="text-danger">You have exceeded the file size limit. Choose another one.</p>
+    FileStatus.LimitExceeded = false;
+}
+
+@if (FileStatus.Exists)
+{
+    <p style="margin-top: 10px" class="text-danger">The file already exists. Rename or select a different file.</p>
+    FileStatus.Exists = false;
+}
+
+@if (FileStatus.Uploaded)
+{
+    <p style="margin-top: 10px; color:indigo">File uploaded succesfully! You will receive an email about the upload</p>
+    FileStatus.Uploaded = false;
+}
+
+@if (!FileStatus.Selected)
+{
+    <p style="margin-top: 10px; color:indigo">Please select a file.</p>
+}
+
+@code { }
